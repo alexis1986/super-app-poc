@@ -1,6 +1,6 @@
-import React, { useState, Suspense } from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import type { LoginResponse } from 'SharedComponents/Login';
+import React, {useState, Suspense} from 'react';
+import {ActivityIndicator, View, StyleSheet} from 'react-native';
+import type {LoginResponse} from 'SharedComponents/Login';
 
 const LoginScreen = React.lazy(() => import('./src/screens/LoginScreen'));
 const WelcomeScreen = React.lazy(() => import('./src/screens/WelcomeScreen'));

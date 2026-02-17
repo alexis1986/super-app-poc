@@ -8,7 +8,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { defaultTheme, Theme } from '../theme';
+import {Theme} from '../theme';
+import {useTheme} from '../ThemeContext';
 
 export interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -24,13 +25,15 @@ export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'medium',
   loading = false,
-  theme = defaultTheme,
+  theme,
   fullWidth = false,
   disabled,
   style,
   ...props
 }) => {
-  const styles = createStyles(theme);
+  const contextTheme = useTheme();
+  const resolvedTheme = theme ?? contextTheme;
+  const styles = createStyles(resolvedTheme);
 
   const buttonStyle: ViewStyle[] = [
     styles.button,
@@ -53,11 +56,10 @@ export const Button: React.FC<ButtonProps> = ({
       style={buttonStyle}
       disabled={disabled || loading}
       activeOpacity={0.7}
-      {...props}
-    >
+      {...props}>
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' ? theme.colors.primary : '#FFFFFF'}
+          color={variant === 'outline' ? resolvedTheme.colors.primary : '#FFFFFF'}
         />
       ) : (
         <Text style={textStyle}>{title}</Text>

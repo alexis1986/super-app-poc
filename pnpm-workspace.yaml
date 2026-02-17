@@ -1,0 +1,4 @@
+packages:
+  - 'AppA'
+  - 'AppB'
+  - 'shared_components'

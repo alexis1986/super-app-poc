@@ -38,6 +38,11 @@ declare module 'SharedComponents/DesignSystem' {
     };
   }
 
+  export interface ThemeProviderProps {
+    theme: Theme;
+    children: React.ReactNode;
+  }
+
   export interface ButtonProps {
     title: string;
     variant?: 'primary' | 'secondary' | 'outline';
@@ -76,6 +81,8 @@ declare module 'SharedComponents/DesignSystem' {
     children: React.ReactNode;
   }
 
+  export const ThemeProvider: React.FC<ThemeProviderProps>;
+  export function useTheme(): Theme;
   export const Button: React.FC<ButtonProps>;
   export const Text: React.FC<TextProps>;
   export const Input: React.FC<InputProps>;
@@ -84,7 +91,7 @@ declare module 'SharedComponents/DesignSystem' {
 }
 
 declare module 'SharedComponents/Login' {
-  import { Theme } from 'SharedComponents/DesignSystem';
+  import {Theme} from 'SharedComponents/DesignSystem';
 
   export interface LoginResponse {
     success: boolean;
@@ -97,9 +104,12 @@ declare module 'SharedComponents/Login' {
     error?: string;
   }
 
-  export interface LoginProps {
+  export interface NavigationActions {
     onLoginSuccess: (response: LoginResponse) => void;
     onLoginError?: (error: string) => void;
+  }
+
+  export interface LoginProps extends NavigationActions {
     theme?: Theme;
     title?: string;
   }

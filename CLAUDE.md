@@ -4,20 +4,34 @@ Este archivo provee guia a Claude Code (claude.ai/code) al trabajar con el codig
 
 ## Descripcion del proyecto
 
-POC de micro-frontends en React Native usando **Rspack Module Federation** via **@callstack/repack**. Tres modulos independientes comparten React y React Native como singletons:
+POC de micro-frontends en React Native usando **Rspack Module Federation** via **@callstack/repack**. Monorepo con pnpm. Tres modulos independientes comparten React y React Native como singletons:
 
 - **AppA/** — App host/consumidora (puerto 8081). Importa modulos federados de shared_components. Theme azul/corporativo.
-- **AppB/** — Segunda app host/consumidora (puerto 8081). Mismos modulos federados, theme verde/fintech. No ejecutar simultáneamente con AppA.
+- **AppB/** — Segunda app host/consumidora (puerto 8081). Mismos modulos federados, theme verde/fintech. No ejecutar simultaneamente con AppA.
 - **shared_components/** — Proveedor remoto (puerto 9000). Expone `./DesignSystem` y `./Login` via Module Federation.
 
 ## Comandos de build y desarrollo
 
-Cada modulo es un proyecto npm independiente. Ejecutar comandos desde `AppA/`, `AppB/` o `shared_components/`.
+### Monorepo (pnpm)
 
 ```bash
-# Instalar dependencias (ejecutar en cada modulo por separado)
-npm install
+# Instalar dependencias (todas las apps)
+pnpm install
 
+# Comandos desde raiz
+pnpm build:shared       # Compila shared_components para Android
+pnpm serve:shared       # Sirve shared_components en :9000
+pnpm start:appA         # Dev server AppA en :8081
+pnpm start:appB         # Dev server AppB en :8081
+pnpm lint:all           # Lint en todos los modulos
+pnpm test:all           # Tests en todos los modulos
+```
+
+### Por modulo (npm/pnpm)
+
+Ejecutar comandos desde `AppA/`, `AppB/` o `shared_components/`.
+
+```bash
 # Compilar bundle rspack (shared_components, Android)
 npm run build:android:dev
 
@@ -42,18 +56,32 @@ npm run lint
 npm test
 ```
 
-**Flujo de desarrollo**: Iniciar shared_components primero (`npm run build:serve` en puerto 9000), luego iniciar dev server de AppA o AppB (`npm start` en puerto 8081, no simultáneamente). Configurar adb reverse (`adb reverse tcp:9000 tcp:9000`, `adb reverse tcp:8081 tcp:8081`). Ambas apps obtienen `mf-manifest.json` de `http://10.0.2.2:9000/` (alias de localhost del emulador Android).
+**Flujo de desarrollo**: Iniciar shared_components primero (`npm run build:serve` en puerto 9000), luego iniciar dev server de AppA o AppB (`npm start` en puerto 8081, no simultaneamente). Configurar adb reverse (`adb reverse tcp:9000 tcp:9000`, `adb reverse tcp:8081 tcp:8081`). Ambas apps obtienen `mf-manifest.json` de `http://10.0.2.2:9000/` (alias de localhost del emulador Android).
 
 ## Arquitectura
 
 ### Module Federation
 
 - **shared_components** expone:
-  - `./DesignSystem` → `src/design-system/index.ts` (Button, Card, Input, Text, theme)
+  - `./DesignSystem` → `src/design-system/index.ts` (ThemeProvider, useTheme, Button, Card, Input, Text, theme)
   - `./Login` → `src/components/Login.tsx`
 - **AppA** y **AppB** los consumen como `SharedComponents/DesignSystem` y `SharedComponents/Login`
 - Los tipos de modulos federados se declaran en `AppA/src/@types/remote-modules.d.ts` y `AppB/src/@types/remote-modules.d.ts`
-- React y React Native se comparten como singletons eager (host) / non-eager (remote)
+- React y React Native se comparten como singletons eager (host) / non-eager (remote), con `requiredVersion` fijado
+
+### Theming con Context
+
+- `ThemeProvider` y `useTheme()` en `shared_components/src/design-system/ThemeContext.tsx`
+- **IMPORTANTE**: No importar modulos federados (`SharedComponents/*`) de forma sincrona en `App.tsx` (entry point). Module Federation requiere que el container remoto se cargue primero. Solo `import type` es seguro en el entry point.
+- Cada screen (lazy-loaded) envuelve su contenido en `<ThemeProvider theme={appXTheme}>` con un patron de componente wrapper + content
+- Los componentes DS (Button, Card, Input, Text) usan `useTheme()` internamente con fallback a prop `theme?` por retrocompatibilidad
+- Login.tsx envuelve su contenido en `<ThemeProvider>` para propagar el theme a hijos sin prop-drilling
+- WelcomeScreen y LoginScreen usan `useTheme()` hook en vez de importar theme directamente
+
+### Comunicacion Inter-Modulo
+
+- `NavigationActions` interface en `shared_components/src/types/navigation.ts` define contrato formal (`onLoginSuccess`, `onLoginError?`)
+- `LoginProps extends NavigationActions` — los hosts implementan los callbacks
 
 ### Flujo de las apps
 
@@ -64,7 +92,7 @@ npm test
 
 ### Design System (shared_components)
 
-Objeto theme centralizado en `src/design-system/theme.ts` con colores, espaciado, borderRadius y tipografia. Componentes: Button, Card, Input, Text. Todos aceptan un prop opcional `theme` para personalizacion. Se exportan desde `src/design-system/index.ts`. AppA sobreescribe el theme via `src/theme/appATheme.ts`, AppB via `src/theme/appBTheme.ts`.
+Objeto theme centralizado en `src/design-system/theme.ts` con colores, espaciado, borderRadius y tipografia. ThemeProvider + useTheme en `ThemeContext.tsx`. Componentes: Button, Card, Input, Text. Todos usan `useTheme()` internamente y aceptan prop opcional `theme?` por retrocompatibilidad. Se exportan desde `src/design-system/index.ts`. AppA sobreescribe el theme via `src/theme/appATheme.ts`, AppB via `src/theme/appBTheme.ts`.
 
 ### Alias de rutas TypeScript
 
@@ -83,6 +111,13 @@ Los tres modulos usan `rspack.config.mjs` (ES modules) con plugins de Repack:
 - **shared_components** define `publicPath: 'http://10.0.2.2:9000/'` para generacion del manifest
 - **shared_components** usa `entry: {}` (vacio — solo expone modulos via MF)
 - **react-native.config.js** en los tres modulos apunta a `@callstack/repack/commands/rspack`
+- Shared dependencies usan `requiredVersion` para react (`18.3.1`) y react-native (`0.76.5`)
+
+### Monorepo
+
+- **pnpm workspaces** con `pnpm-workspace.yaml` en raiz
+- `.npmrc` con `shamefully-hoist=true` y `node-linker=hoisted` (requerido por React Native)
+- `package.json` raiz con scripts centralizados y overrides de versiones
 
 ## Repositorio
 
@@ -94,4 +129,4 @@ Los tres modulos usan `rspack.config.mjs` (ES modules) con plugins de Repack:
 
 - Prettier: singleQuote, trailingComma=all, arrowParens=avoid, bracketSameLine=true, sin bracketSpacing
 - ESLint: configuracion @react-native
-- Texto mixto español/ingles en UI y comentarios
+- Texto mixto espanol/ingles en UI y comentarios

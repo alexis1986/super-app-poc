@@ -46,8 +46,8 @@ export default env => {
             'SharedComponents@http://10.0.2.2:9000/mf-manifest.json',
         },
         shared: {
-          react: {singleton: true, eager: true},
-          'react-native': {singleton: true, eager: true},
+          react: {singleton: true, eager: true, requiredVersion: '18.3.1'},
+          'react-native': {singleton: true, eager: true, requiredVersion: '0.76.5'},
         },
       }),
     ],

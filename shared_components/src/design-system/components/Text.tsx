@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text as RNText, TextProps as RNTextProps, StyleSheet, TextStyle } from 'react-native';
-import { defaultTheme, Theme } from '../theme';
+import {Text as RNText, TextProps as RNTextProps, StyleSheet, TextStyle} from 'react-native';
+import {Theme} from '../theme';
+import {useTheme} from '../ThemeContext';
 
 export interface TextProps extends RNTextProps {
   variant?: 'heading' | 'subheading' | 'body' | 'caption';
@@ -14,20 +15,22 @@ export const Text: React.FC<TextProps> = ({
   variant = 'body',
   weight = 'regular',
   color,
-  theme = defaultTheme,
+  theme,
   align = 'left',
   style,
   children,
   ...props
 }) => {
-  const styles = createStyles(theme);
+  const contextTheme = useTheme();
+  const resolvedTheme = theme ?? contextTheme;
+  const styles = createStyles(resolvedTheme);
 
   const textStyle: TextStyle[] = [
     styles.base,
     styles[`variant_${variant}`],
     styles[`weight_${weight}`],
-    { textAlign: align },
-    color && { color },
+    {textAlign: align},
+    color && {color},
     style as TextStyle,
   ];
 

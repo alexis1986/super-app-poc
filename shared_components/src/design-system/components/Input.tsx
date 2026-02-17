@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   TextInput,
   View,
@@ -7,8 +7,9 @@ import {
   ViewStyle,
   TouchableOpacity,
 } from 'react-native';
-import { defaultTheme, Theme } from '../theme';
-import { Text } from './Text';
+import {Theme} from '../theme';
+import {useTheme} from '../ThemeContext';
+import {Text} from './Text';
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -22,7 +23,7 @@ export interface InputProps extends TextInputProps {
 export const Input: React.FC<InputProps> = ({
   label,
   error,
-  theme = defaultTheme,
+  theme,
   containerStyle,
   style,
   secureTextEntry = false,
@@ -32,7 +33,9 @@ export const Input: React.FC<InputProps> = ({
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  const styles = createStyles(theme);
+  const contextTheme = useTheme();
+  const resolvedTheme = theme ?? contextTheme;
+  const styles = createStyles(resolvedTheme);
 
   const isSecure = secureTextEntry && !isPasswordVisible;
 
@@ -51,7 +54,7 @@ export const Input: React.FC<InputProps> = ({
             error && styles.inputError,
             style,
           ]}
-          placeholderTextColor={theme.colors.textSecondary}
+          placeholderTextColor={resolvedTheme.colors.textSecondary}
           secureTextEntry={isSecure}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -60,16 +63,15 @@ export const Input: React.FC<InputProps> = ({
         {showPasswordToggle && secureTextEntry && (
           <TouchableOpacity
             style={styles.toggleButton}
-            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-          >
-            <Text variant="caption" color={theme.colors.primary}>
+            onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+            <Text variant="caption" color={resolvedTheme.colors.primary}>
               {isPasswordVisible ? 'Ocultar' : 'Mostrar'}
             </Text>
           </TouchableOpacity>
         )}
       </View>
       {error && (
-        <Text variant="caption" color={theme.colors.error} style={styles.error}>
+        <Text variant="caption" color={resolvedTheme.colors.error} style={styles.error}>
           {error}
         </Text>
       )}

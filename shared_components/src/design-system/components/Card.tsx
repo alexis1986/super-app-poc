@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ViewProps, ViewStyle } from 'react-native';
-import { defaultTheme, Theme } from '../theme';
+import {View, StyleSheet, ViewProps, ViewStyle} from 'react-native';
+import {Theme} from '../theme';
+import {useTheme} from '../ThemeContext';
 
 export interface CardProps extends ViewProps {
   theme?: Theme;
@@ -9,14 +10,16 @@ export interface CardProps extends ViewProps {
 }
 
 export const Card: React.FC<CardProps> = ({
-  theme = defaultTheme,
+  theme,
   variant = 'elevated',
   padding = 'medium',
   style,
   children,
   ...props
 }) => {
-  const styles = createStyles(theme);
+  const contextTheme = useTheme();
+  const resolvedTheme = theme ?? contextTheme;
+  const styles = createStyles(resolvedTheme);
 
   const cardStyle: ViewStyle[] = [
     styles.base,

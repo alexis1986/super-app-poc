@@ -44,8 +44,8 @@ export default env => {
           './Login': './src/components/Login.tsx',
         },
         shared: {
-          react: {singleton: true, eager: false},
-          'react-native': {singleton: true, eager: false},
+          react: {singleton: true, eager: false, requiredVersion: '18.3.1'},
+          'react-native': {singleton: true, eager: false, requiredVersion: '0.76.5'},
         },
       }),
     ],

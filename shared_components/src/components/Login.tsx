@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { Button, Input, Text, Card } from '../design-system';
-import { defaultTheme, Theme } from '../design-system/theme';
-import type { LoginCredentials, LoginResponse, AuthState } from '../types/auth';
+import React, {useState} from 'react';
+import {View, StyleSheet} from 'react-native';
+import {Button, Input, Text, Card, ThemeProvider, useTheme} from '../design-system';
+import type {Theme} from '../design-system/theme';
+import type {LoginCredentials, LoginResponse, AuthState} from '../types/auth';
+import type {NavigationActions} from '../types/navigation';
 
-export interface LoginProps {
-  onLoginSuccess: (response: LoginResponse) => void;
-  onLoginError?: (error: string) => void;
+export type {NavigationActions} from '../types/navigation';
+
+export interface LoginProps extends NavigationActions {
   theme?: Theme;
   title?: string;
 }
 
-// Credenciales hardcodeadas para la simulación
+// Credenciales hardcodeadas para la simulacion
 const MOCK_CREDENTIALS = {
   email: 'user@app.com',
   password: '123456',
@@ -19,7 +20,7 @@ const MOCK_CREDENTIALS = {
 
 // Simula una llamada a API con delay
 const simulateLogin = (credentials: LoginCredentials): Promise<LoginResponse> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       if (
         credentials.email === MOCK_CREDENTIALS.email &&
@@ -40,16 +41,19 @@ const simulateLogin = (credentials: LoginCredentials): Promise<LoginResponse> =>
           error: 'Credenciales incorrectas',
         });
       }
-    }, 1500); // Simula 1.5s de latencia de red
+    }, 1500);
   });
 };
 
 export const Login: React.FC<LoginProps> = ({
   onLoginSuccess,
   onLoginError,
-  theme = defaultTheme,
-  title = 'Iniciar Sesión',
+  theme,
+  title = 'Iniciar Sesion',
 }) => {
+  const contextTheme = useTheme();
+  const resolvedTheme = theme ?? contextTheme;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authState, setAuthState] = useState<AuthState>({
@@ -57,128 +61,118 @@ export const Login: React.FC<LoginProps> = ({
     error: null,
   });
 
-  // Validación básica de email
-  const validateEmail = (email: string): boolean => {
+  const validateEmail = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return emailRegex.test(value);
   };
 
-  // Validación de password
-  const validatePassword = (password: string): boolean => {
-    return password.length >= 6;
+  const validatePassword = (value: string): boolean => {
+    return value.length >= 6;
   };
 
   const handleLogin = async () => {
-    // Reset error
-    setAuthState({ isLoading: false, error: null });
+    setAuthState({isLoading: false, error: null});
 
-    // Validaciones
     if (!email.trim()) {
-      setAuthState({ isLoading: false, error: 'El email es requerido' });
+      setAuthState({isLoading: false, error: 'El email es requerido'});
       return;
     }
 
     if (!validateEmail(email)) {
-      setAuthState({ isLoading: false, error: 'Email inválido' });
+      setAuthState({isLoading: false, error: 'Email invalido'});
       return;
     }
 
     if (!password) {
-      setAuthState({ isLoading: false, error: 'La contraseña es requerida' });
+      setAuthState({isLoading: false, error: 'La contrasena es requerida'});
       return;
     }
 
     if (!validatePassword(password)) {
-      setAuthState({ isLoading: false, error: 'La contraseña debe tener al menos 6 caracteres' });
+      setAuthState({isLoading: false, error: 'La contrasena debe tener al menos 6 caracteres'});
       return;
     }
 
-    // Iniciar loading
-    setAuthState({ isLoading: true, error: null });
+    setAuthState({isLoading: true, error: null});
 
     try {
-      const response = await simulateLogin({ email, password });
+      const response = await simulateLogin({email, password});
 
       if (response.success) {
         onLoginSuccess(response);
       } else {
         const errorMsg = response.error || 'Error desconocido';
-        setAuthState({ isLoading: false, error: errorMsg });
-        if (onLoginError) {
-          onLoginError(errorMsg);
-        }
+        setAuthState({isLoading: false, error: errorMsg});
+        onLoginError?.(errorMsg);
       }
-    } catch (error) {
-      const errorMsg = 'Error de conexión';
-      setAuthState({ isLoading: false, error: errorMsg });
-      if (onLoginError) {
-        onLoginError(errorMsg);
-      }
+    } catch (_error) {
+      const errorMsg = 'Error de conexion';
+      setAuthState({isLoading: false, error: errorMsg});
+      onLoginError?.(errorMsg);
     }
   };
 
-  const styles = createStyles(theme);
+  const styles = createStyles(resolvedTheme);
 
   return (
-    <View style={styles.container}>
-      <Card variant="elevated" padding="large" theme={theme}>
-        <Text variant="heading" weight="bold" align="center" theme={theme}>
-          {title}
-        </Text>
-
-        <Text variant="caption" align="center" theme={theme} style={styles.subtitle}>
-          Ingresa tus credenciales para continuar
-        </Text>
-
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="usuario@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            theme={theme}
-            editable={!authState.isLoading}
-          />
-
-          <Input
-            label="Contraseña"
-            placeholder="Mínimo 6 caracteres"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            showPasswordToggle
-            theme={theme}
-            editable={!authState.isLoading}
-          />
-
-          {authState.error && (
-            <View style={styles.errorContainer}>
-              <Text variant="body" color={theme.colors.error}>
-                {authState.error}
-              </Text>
-            </View>
-          )}
-
-          <Button
-            title="Iniciar Sesión"
-            onPress={handleLogin}
-            loading={authState.isLoading}
-            fullWidth
-            theme={theme}
-            style={styles.button}
-          />
-
-          <Text variant="caption" align="center" theme={theme} style={styles.hint}>
-            Credenciales de prueba:{'\n'}
-            Email: user@app.com{'\n'}
-            Contraseña: 123456
+    <ThemeProvider theme={resolvedTheme}>
+      <View style={styles.container}>
+        <Card variant="elevated" padding="large">
+          <Text variant="heading" weight="bold" align="center">
+            {title}
           </Text>
-        </View>
-      </Card>
-    </View>
+
+          <Text variant="caption" align="center" style={styles.subtitle}>
+            Ingresa tus credenciales para continuar
+          </Text>
+
+          <View style={styles.form}>
+            <Input
+              label="Email"
+              placeholder="usuario@ejemplo.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!authState.isLoading}
+            />
+
+            <Input
+              label="Contrasena"
+              placeholder="Minimo 6 caracteres"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              showPasswordToggle
+              editable={!authState.isLoading}
+            />
+
+            {authState.error && (
+              <View style={styles.errorContainer}>
+                <Text variant="body" color={resolvedTheme.colors.error}>
+                  {authState.error}
+                </Text>
+              </View>
+            )}
+
+            <Button
+              title="Iniciar Sesion"
+              onPress={handleLogin}
+              loading={authState.isLoading}
+              fullWidth
+              style={styles.button}
+            />
+
+            <Text variant="caption" align="center" style={styles.hint}>
+              Credenciales de prueba:{'\n'}
+              Email: user@app.com{'\n'}
+              Contrasena: 123456
+            </Text>
+          </View>
+        </Card>
+      </View>
+    </ThemeProvider>
   );
 };
 
@@ -198,7 +192,7 @@ const createStyles = (theme: Theme) =>
       marginTop: theme.spacing.md,
     },
     errorContainer: {
-      backgroundColor: theme.colors.error + '20', // 20% opacity
+      backgroundColor: theme.colors.error + '20',
       padding: theme.spacing.md,
       borderRadius: theme.borderRadius.md,
       marginBottom: theme.spacing.md,
