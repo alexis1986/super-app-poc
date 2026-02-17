@@ -8,6 +8,12 @@ Multiples apps host independientes comparten componentes UI en tiempo de ejecuci
 
 ```
 super-app-poc/
+├── package.json             # Scripts centralizados, devDependencies compartidas, overrides
+├── pnpm-workspace.yaml      # Workspaces + catalog: (versiones centralizadas)
+├── pnpm-lock.yaml           # Lock file unico del monorepo
+├── .npmrc                   # shamefully-hoist=true, node-linker=hoisted
+├── .gitignore               # Gitignore consolidado (raiz unica)
+│
 ├── AppA/                    # App host - Corporativa (puerto 8081, theme azul)
 │   ├── src/
 │   │   ├── screens/
@@ -69,9 +75,16 @@ React y React Native se comparten como singletons para evitar instancias duplica
 
 Theme centralizado (`theme.ts`) con colores, espaciado, borderRadius y tipografia. Todos los componentes aceptan un prop opcional `theme` para personalizacion. Cada app sobreescribe el theme por defecto con su propia paleta: AppA usa azul corporativo (`appATheme.ts`), AppB usa verde fintech (`appBTheme.ts`).
 
+### Gestion de dependencias
+
+Monorepo con **pnpm workspaces**. Las versiones de `react`, `react-native` y `@callstack/repack` se definen una sola vez en `pnpm-workspace.yaml` mediante **pnpm catalog:**. Cada `package.json` local referencia `"catalog:"` en vez de la version.
+
+Las devDependencies compartidas (babel, eslint, rspack, typescript, jest, prettier, etc.) viven unicamente en el `package.json` raiz y se resuelven via hoisting (`node-linker=hoisted`).
+
 ## Prerequisitos
 
 - Node.js >= 18
+- pnpm >= 9.5 (soporte para `catalog:`)
 - Android SDK con emulador configurado
 - Java 17+ (para Gradle)
 
@@ -80,9 +93,7 @@ Theme centralizado (`theme.ts`) con colores, espaciado, borderRadius y tipografi
 ### 1. Instalar dependencias
 
 ```bash
-cd shared_components && npm install
-cd ../AppA && npm install
-cd ../AppB && npm install
+pnpm install
 ```
 
 ### 2. Compilar y servir shared_components
@@ -133,6 +144,18 @@ cd AppB && npm run android
 
 ## Scripts
 
+### Monorepo (desde raiz)
+
+| Script | Descripcion |
+|--------|-------------|
+| `pnpm install` | Instala dependencias de todos los workspaces |
+| `pnpm build:shared` | Compila shared_components para Android |
+| `pnpm serve:shared` | Sirve shared_components en puerto 9000 |
+| `pnpm start:appA` | Dev server AppA en puerto 8081 |
+| `pnpm start:appB` | Dev server AppB en puerto 8081 |
+| `pnpm lint:all` | Lint en todos los modulos |
+| `pnpm test:all` | Tests en todos los modulos |
+
 ### AppA
 
 | Script | Descripcion |
@@ -170,3 +193,4 @@ cd AppB && npm run android
 - **Module Federation** via `@module-federation/enhanced` 0.13.1
 - **TypeScript** 5.x
 - **SWC** (via `@callstack/repack/babel-swc-loader`)
+- **pnpm** workspaces con `catalog:` para gestion centralizada de versiones

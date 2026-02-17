@@ -13,38 +13,12 @@
     "test": "jest"
   },
   "dependencies": {
-    "react": "18.3.1",
-    "react-native": "0.76.5"
+    "react": "catalog:",
+    "react-native": "catalog:"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.29.0",
-    "@babel/preset-flow": "^7.27.1",
-    "@babel/preset-react": "^7.28.5",
-    "@babel/runtime": "^7.25.0",
-    "@callstack/repack": "^5.2.3",
-    "@module-federation/enhanced": "0.13.1",
-    "@react-native-community/cli": "15.0.1",
-    "@react-native-community/cli-platform-android": "15.0.1",
-    "@react-native-community/cli-platform-ios": "15.0.1",
-    "@react-native/babel-preset": "0.76.5",
-    "@react-native/eslint-config": "0.76.5",
-    "@react-native/metro-config": "0.76.5",
-    "@react-native/typescript-config": "0.76.5",
-    "@rspack/cli": "^1.7.6",
-    "@rspack/core": "^1.5.0",
-    "@swc/helpers": "^0.5.17",
-    "@types/react": "^18.3.27",
-    "@types/react-native": "^0.72.8",
-    "@types/react-test-renderer": "^18.0.0",
-    "babel-jest": "^29.6.3",
     "cors": "^2.8.6",
-    "eslint": "^8.19.0",
-    "express": "^5.2.1",
-    "jest": "^29.6.3",
-    "prettier": "2.8.8",
-    "react-test-renderer": "18.3.1",
-    "typescript": "^5.0.4"
+    "express": "^5.2.1"
   },
   "engines": {
     "node": ">=18"

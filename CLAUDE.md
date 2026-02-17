@@ -117,7 +117,18 @@ Los tres modulos usan `rspack.config.mjs` (ES modules) con plugins de Repack:
 
 - **pnpm workspaces** con `pnpm-workspace.yaml` en raiz
 - `.npmrc` con `shamefully-hoist=true` y `node-linker=hoisted` (requerido por React Native)
-- `package.json` raiz con scripts centralizados y overrides de versiones
+- `package.json` raiz con scripts centralizados, overrides de versiones y devDependencies compartidas
+- **pnpm catalog:** para centralizar versiones de `react`, `react-native` y `@callstack/repack` en `pnpm-workspace.yaml`
+- `.gitignore` unico en raiz (consolidado de los 3 proyectos)
+
+### Gestion de dependencias
+
+- **`catalog:`** en `pnpm-workspace.yaml` define las versiones de `react`, `react-native` y `@callstack/repack`. Cada `package.json` local referencia `"catalog:"` en vez de la version — una sola fuente de verdad.
+- **`react` y `react-native`** deben estar en el `package.json` de cada workspace como `dependencies`. El CLI de React Native (`findDependencies`) lee solo el `package.json` local para registrar plataformas y autolinking. Sin ellas, `project.android` queda vacio y Gradle falla.
+- **`@callstack/repack`** debe estar en `devDependencies` de AppA y AppB. Tiene `codegenConfig` (modulo nativo) que requiere autolinking — el CLI necesita verlo en el `package.json` local.
+- **DevDependencies comunes** (babel, eslint, rspack, typescript, jest, prettier, etc.) viven solo en root `package.json`. Se resuelven via hoisting sin necesidad de estar en cada proyecto.
+- **`cors` y `express`** son exclusivas de `shared_components` (servidor de desarrollo).
+- **IMPORTANTE**: No quitar `react`, `react-native` ni `@callstack/repack` de los `package.json` locales. El hoisting resuelve a una sola copia en disco, pero el CLI requiere la declaracion local para autolinking.
 
 ## Repositorio
 
