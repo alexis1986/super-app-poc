@@ -2,19 +2,32 @@
 
 Prueba de concepto de micro-frontends en React Native usando **Module Federation** con **Rspack** via [@callstack/repack](https://github.com/callstack/repack).
 
-Dos modulos independientes comparten componentes UI en tiempo de ejecucion sin necesidad de recompilar la app host.
+Multiples apps host independientes comparten componentes UI en tiempo de ejecucion sin necesidad de recompilar. Demuestra que distintas apps pueden consumir los mismos modulos federados con branding propio.
 
 ## Arquitectura
 
 ```
 super-app-poc/
-├── AppA/                    # App host (puerto 8081)
+├── AppA/                    # App host - Corporativa (puerto 8081, theme azul)
 │   ├── src/
 │   │   ├── screens/
 │   │   │   ├── LoginScreen.tsx
 │   │   │   └── WelcomeScreen.tsx
 │   │   ├── theme/
 │   │   │   └── appATheme.ts
+│   │   └── @types/
+│   │       └── remote-modules.d.ts
+│   ├── App.tsx
+│   ├── index.js
+│   └── rspack.config.mjs
+│
+├── AppB/                    # App host - Fintech (puerto 8081, theme verde)
+│   ├── src/
+│   │   ├── screens/
+│   │   │   ├── LoginScreen.tsx
+│   │   │   └── WelcomeScreen.tsx
+│   │   ├── theme/
+│   │   │   └── appBTheme.ts
 │   │   └── @types/
 │   │       └── remote-modules.d.ts
 │   ├── App.tsx
@@ -48,13 +61,13 @@ super-app-poc/
 | `./DesignSystem` | `src/design-system/index.ts` | Button, Card, Input, Text, theme |
 | `./Login` | `src/components/Login.tsx` | Componente Login con auth simulado |
 
-**AppA** los consume como `SharedComponents/DesignSystem` y `SharedComponents/Login` mediante carga lazy con `React.lazy()`.
+**AppA** y **AppB** los consumen como `SharedComponents/DesignSystem` y `SharedComponents/Login` mediante carga lazy con `React.lazy()`.
 
 React y React Native se comparten como singletons para evitar instancias duplicadas.
 
 ### Design System
 
-Theme centralizado (`theme.ts`) con colores, espaciado, borderRadius y tipografia. Todos los componentes aceptan un prop opcional `theme` para personalizacion. AppA sobreescribe el theme por defecto con su propia paleta corporativa azul (`appATheme.ts`).
+Theme centralizado (`theme.ts`) con colores, espaciado, borderRadius y tipografia. Todos los componentes aceptan un prop opcional `theme` para personalizacion. Cada app sobreescribe el theme por defecto con su propia paleta: AppA usa azul corporativo (`appATheme.ts`), AppB usa verde fintech (`appBTheme.ts`).
 
 ## Prerequisitos
 
@@ -69,6 +82,7 @@ Theme centralizado (`theme.ts`) con colores, espaciado, borderRadius y tipografi
 ```bash
 cd shared_components && npm install
 cd ../AppA && npm install
+cd ../AppB && npm install
 ```
 
 ### 2. Compilar y servir shared_components
@@ -80,28 +94,36 @@ npm run build:serve
 
 Esto compila el bundle con Rspack e inicia un servidor Express en el puerto 9000 sirviendo `mf-manifest.json` y todos los chunks federados.
 
-### 3. Iniciar dev server de AppA
+### 3. Iniciar dev server de AppA o AppB
+
+Ambas apps usan el puerto 8081. No ejecutar simultáneamente.
 
 ```bash
-cd AppA
-npm start
+cd AppA && npm start    # o
+cd AppB && npm start
 ```
-
-Inicia el dev server Repack/Rspack en el puerto 8081.
 
 ### 4. Ejecutar en emulador Android
 
 ```bash
 adb reverse tcp:8081 tcp:8081
 adb reverse tcp:9000 tcp:9000
-cd AppA/android && ./gradlew.bat app:installDebug    # Windows
+
+# AppA (theme azul)
+cd AppA/android && ./gradlew.bat app:installDebug
 adb shell am start -n com.appa/.MainActivity
+
+# AppB (theme verde)
+cd AppB/android && ./gradlew.bat app:installDebug
+adb shell am start -n com.appb/.MainActivity
 ```
 
 O usando React Native CLI:
 
 ```bash
 cd AppA && npm run android
+# o
+cd AppB && npm run android
 ```
 
 ### Credenciales de prueba
@@ -112,6 +134,16 @@ cd AppA && npm run android
 ## Scripts
 
 ### AppA
+
+| Script | Descripcion |
+|--------|-------------|
+| `npm start` | Inicia dev server Rspack en puerto 8081 |
+| `npm run android` | Instala y lanza en emulador Android |
+| `npm run bundle:android` | Bundle de produccion para Android |
+| `npm run lint` | Ejecuta ESLint |
+| `npm test` | Ejecuta tests con Jest |
+
+### AppB
 
 | Script | Descripcion |
 |--------|-------------|
