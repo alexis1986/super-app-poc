@@ -1,8 +1,8 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet, StatusBar} from 'react-native';
-import {Login} from 'SharedComponents/Login';
-import type {LoginResponse} from 'SharedComponents/Login';
-import {ThemeProvider, useTheme} from 'SharedComponents/DesignSystem';
+import {Login} from 'SharedModule/Login';
+import type {LoginResponse} from 'SharedModule/Login';
+import {ThemeProvider, useTheme} from 'SharedModule/DesignSystem';
 import {appBTheme} from '../theme/appBTheme';
 
 interface LoginScreenProps {

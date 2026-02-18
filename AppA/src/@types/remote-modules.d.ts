@@ -1,4 +1,4 @@
-declare module 'SharedComponents/DesignSystem' {
+declare module 'SharedModule/DesignSystem' {
   export interface Theme {
     colors: {
       primary: string;
@@ -90,8 +90,8 @@ declare module 'SharedComponents/DesignSystem' {
   export const defaultTheme: Theme;
 }
 
-declare module 'SharedComponents/Login' {
-  import {Theme} from 'SharedComponents/DesignSystem';
+declare module 'SharedModule/Login' {
+  import {Theme} from 'SharedModule/DesignSystem';
 
   export interface LoginResponse {
     success: boolean;

@@ -40,7 +40,7 @@ super-app-poc/
 │   ├── index.js
 │   └── rspack.config.mjs
 │
-└── shared_components/       # Proveedor remoto (puerto 9000)
+└── shared_module/           # Proveedor remoto (puerto 9000)
     ├── src/
     │   ├── design-system/
     │   │   ├── components/
@@ -60,14 +60,14 @@ super-app-poc/
 
 ### Module Federation
 
-**shared_components** expone dos modulos federados:
+**shared_module** expone dos modulos federados:
 
 | Modulo | Ruta | Exporta |
 |--------|------|---------|
 | `./DesignSystem` | `src/design-system/index.ts` | Button, Card, Input, Text, theme |
 | `./Login` | `src/components/Login.tsx` | Componente Login con auth simulado |
 
-**AppA** y **AppB** los consumen como `SharedComponents/DesignSystem` y `SharedComponents/Login` mediante carga lazy con `React.lazy()`.
+**AppA** y **AppB** los consumen como `SharedModule/DesignSystem` y `SharedModule/Login` mediante carga lazy con `React.lazy()`.
 
 React y React Native se comparten como singletons para evitar instancias duplicadas.
 
@@ -96,10 +96,10 @@ Las devDependencies compartidas (babel, eslint, rspack, typescript, jest, pretti
 pnpm install
 ```
 
-### 2. Compilar y servir shared_components
+### 2. Compilar y servir shared_module
 
 ```bash
-cd shared_components
+cd shared_module
 npm run build:serve
 ```
 
@@ -149,8 +149,8 @@ cd AppB && npm run android
 | Script | Descripcion |
 |--------|-------------|
 | `pnpm install` | Instala dependencias de todos los workspaces |
-| `pnpm build:shared` | Compila shared_components para Android |
-| `pnpm serve:shared` | Sirve shared_components en puerto 9000 |
+| `pnpm build:shared` | Compila shared_module para Android |
+| `pnpm serve:shared` | Sirve shared_module en puerto 9000 |
 | `pnpm start:appA` | Dev server AppA en puerto 8081 |
 | `pnpm start:appB` | Dev server AppB en puerto 8081 |
 | `pnpm lint:all` | Lint en todos los modulos |
@@ -176,7 +176,7 @@ cd AppB && npm run android
 | `npm run lint` | Ejecuta ESLint |
 | `npm test` | Ejecuta tests con Jest |
 
-### shared_components
+### shared_module
 
 | Script | Descripcion |
 |--------|-------------|

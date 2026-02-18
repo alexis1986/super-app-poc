@@ -6,9 +6,9 @@ Este archivo provee guia a Claude Code (claude.ai/code) al trabajar con el codig
 
 POC de micro-frontends en React Native usando **Rspack Module Federation** via **@callstack/repack**. Monorepo con pnpm. Tres modulos independientes comparten React y React Native como singletons:
 
-- **AppA/** — App host/consumidora (puerto 8081). Importa modulos federados de shared_components. Theme azul/corporativo.
+- **AppA/** — App host/consumidora (puerto 8081). Importa modulos federados de shared_module. Theme azul/corporativo.
 - **AppB/** — Segunda app host/consumidora (puerto 8081). Mismos modulos federados, theme verde/fintech. No ejecutar simultaneamente con AppA.
-- **shared_components/** — Proveedor remoto (puerto 9000). Expone `./DesignSystem` y `./Login` via Module Federation.
+- **shared_module/** — Proveedor remoto (puerto 9000). Expone `./DesignSystem` y `./Login` via Module Federation.
 
 ## Comandos de build y desarrollo
 
@@ -19,8 +19,8 @@ POC de micro-frontends en React Native usando **Rspack Module Federation** via *
 pnpm install
 
 # Comandos desde raiz
-pnpm build:shared       # Compila shared_components para Android
-pnpm serve:shared       # Sirve shared_components en :9000
+pnpm build:shared       # Compila shared_module para Android
+pnpm serve:shared       # Sirve shared_module en :9000
 pnpm start:appA         # Dev server AppA en :8081
 pnpm start:appB         # Dev server AppB en :8081
 pnpm lint:all           # Lint en todos los modulos
@@ -29,16 +29,16 @@ pnpm test:all           # Tests en todos los modulos
 
 ### Por modulo (npm/pnpm)
 
-Ejecutar comandos desde `AppA/`, `AppB/` o `shared_components/`.
+Ejecutar comandos desde `AppA/`, `AppB/` o `shared_module/`.
 
 ```bash
-# Compilar bundle rspack (shared_components, Android)
+# Compilar bundle rspack (shared_module, Android)
 npm run build:android:dev
 
 # Iniciar dev server
-npm start              # AppA y AppB en :8081 (Repack/Rspack), shared_components usa npm run serve en :9000
+npm start              # AppA y AppB en :8081 (Repack/Rspack), shared_module usa npm run serve en :9000
 
-# Compilar + servir en un paso (shared_components)
+# Compilar + servir en un paso (shared_module)
 npm run build:serve
 
 # Ejecutar en emulador Android (AppA)
@@ -56,23 +56,23 @@ npm run lint
 npm test
 ```
 
-**Flujo de desarrollo**: Iniciar shared_components primero (`npm run build:serve` en puerto 9000), luego iniciar dev server de AppA o AppB (`npm start` en puerto 8081, no simultaneamente). Configurar adb reverse (`adb reverse tcp:9000 tcp:9000`, `adb reverse tcp:8081 tcp:8081`). Ambas apps obtienen `mf-manifest.json` de `http://10.0.2.2:9000/` (alias de localhost del emulador Android).
+**Flujo de desarrollo**: Iniciar shared_module primero (`npm run build:serve` en puerto 9000), luego iniciar dev server de AppA o AppB (`npm start` en puerto 8081, no simultaneamente). Configurar adb reverse (`adb reverse tcp:9000 tcp:9000`, `adb reverse tcp:8081 tcp:8081`). Ambas apps obtienen `mf-manifest.json` de `http://10.0.2.2:9000/` (alias de localhost del emulador Android).
 
 ## Arquitectura
 
 ### Module Federation
 
-- **shared_components** expone:
+- **shared_module** expone:
   - `./DesignSystem` → `src/design-system/index.ts` (ThemeProvider, useTheme, Button, Card, Input, Text, theme)
   - `./Login` → `src/components/Login.tsx`
-- **AppA** y **AppB** los consumen como `SharedComponents/DesignSystem` y `SharedComponents/Login`
+- **AppA** y **AppB** los consumen como `SharedModule/DesignSystem` y `SharedModule/Login`
 - Los tipos de modulos federados se declaran en `AppA/src/@types/remote-modules.d.ts` y `AppB/src/@types/remote-modules.d.ts`
 - React y React Native se comparten como singletons eager (host) / non-eager (remote), con `requiredVersion` fijado
 
 ### Theming con Context
 
-- `ThemeProvider` y `useTheme()` en `shared_components/src/design-system/ThemeContext.tsx`
-- **IMPORTANTE**: No importar modulos federados (`SharedComponents/*`) de forma sincrona en `App.tsx` (entry point). Module Federation requiere que el container remoto se cargue primero. Solo `import type` es seguro en el entry point.
+- `ThemeProvider` y `useTheme()` en `shared_module/src/design-system/ThemeContext.tsx`
+- **IMPORTANTE**: No importar modulos federados (`SharedModule/*`) de forma sincrona en `App.tsx` (entry point). Module Federation requiere que el container remoto se cargue primero. Solo `import type` es seguro en el entry point.
 - Cada screen (lazy-loaded) envuelve su contenido en `<ThemeProvider theme={appXTheme}>` con un patron de componente wrapper + content
 - Los componentes DS (Button, Card, Input, Text) usan `useTheme()` internamente con fallback a prop `theme?` por retrocompatibilidad
 - Login.tsx envuelve su contenido en `<ThemeProvider>` para propagar el theme a hijos sin prop-drilling
@@ -80,25 +80,25 @@ npm test
 
 ### Comunicacion Inter-Modulo
 
-- `NavigationActions` interface en `shared_components/src/types/navigation.ts` define contrato formal (`onLoginSuccess`, `onLoginError?`)
+- `NavigationActions` interface en `shared_module/src/types/navigation.ts` define contrato formal (`onLoginSuccess`, `onLoginError?`)
 - `LoginProps extends NavigationActions` — los hosts implementan los callbacks
 
 ### Flujo de las apps
 
 - `AppA/App.tsx` y `AppB/App.tsx` gestionan el estado de autenticacion, cargan lazy `LoginScreen` y `WelcomeScreen`
-- `LoginScreen` envuelve el componente federado `Login` de shared_components
+- `LoginScreen` envuelve el componente federado `Login` de shared_module
 - Credenciales mock: `user@app.com` / `123456`
 - AppA usa theme azul/corporativo (`src/theme/appATheme.ts`), AppB usa theme verde/fintech (`src/theme/appBTheme.ts`)
 
-### Design System (shared_components)
+### Design System (shared_module)
 
 Objeto theme centralizado en `src/design-system/theme.ts` con colores, espaciado, borderRadius y tipografia. ThemeProvider + useTheme en `ThemeContext.tsx`. Componentes: Button, Card, Input, Text. Todos usan `useTheme()` internamente y aceptan prop opcional `theme?` por retrocompatibilidad. Se exportan desde `src/design-system/index.ts`. AppA sobreescribe el theme via `src/theme/appATheme.ts`, AppB via `src/theme/appBTheme.ts`.
 
 ### Alias de rutas TypeScript
 
-- **AppA**: `@screens/*` → `src/screens/`, `@theme/*` → `src/theme/`, `SharedComponents/*` → federado
-- **AppB**: `@screens/*` → `src/screens/`, `@theme/*` → `src/theme/`, `SharedComponents/*` → federado
-- **shared_components**: `@components/*` → `src/components/`, `@design-system/*` → `src/design-system/`
+- **AppA**: `@screens/*` → `src/screens/`, `@theme/*` → `src/theme/`, `SharedModule/*` → federado
+- **AppB**: `@screens/*` → `src/screens/`, `@theme/*` → `src/theme/`, `SharedModule/*` → federado
+- **shared_module**: `@components/*` → `src/components/`, `@design-system/*` → `src/design-system/`
 
 ### Configuracion Rspack
 
@@ -108,8 +108,8 @@ Los tres modulos usan `rspack.config.mjs` (ES modules) con plugins de Repack:
 - **Assets**: `Repack.getAssetTransformRules()`
 - **MF**: `@module-federation/enhanced` fijado en `0.13.1` (v2.x tiene breaking changes con RN)
 - **Output de build**: `build/generated/android/`
-- **shared_components** define `publicPath: 'http://10.0.2.2:9000/'` para generacion del manifest
-- **shared_components** usa `entry: {}` (vacio — solo expone modulos via MF)
+- **shared_module** define `publicPath: 'http://10.0.2.2:9000/'` para generacion del manifest
+- **shared_module** usa `entry: {}` (vacio — solo expone modulos via MF)
 - **react-native.config.js** en los tres modulos apunta a `@callstack/repack/commands/rspack`
 - Shared dependencies usan `requiredVersion` para react (`18.3.1`) y react-native (`0.76.5`)
 
@@ -127,7 +127,7 @@ Los tres modulos usan `rspack.config.mjs` (ES modules) con plugins de Repack:
 - **`react` y `react-native`** deben estar en el `package.json` de cada workspace como `dependencies`. El CLI de React Native (`findDependencies`) lee solo el `package.json` local para registrar plataformas y autolinking. Sin ellas, `project.android` queda vacio y Gradle falla.
 - **`@callstack/repack`** debe estar en `devDependencies` de AppA y AppB. Tiene `codegenConfig` (modulo nativo) que requiere autolinking — el CLI necesita verlo en el `package.json` local.
 - **DevDependencies comunes** (babel, eslint, rspack, typescript, jest, prettier, etc.) viven solo en root `package.json`. Se resuelven via hoisting sin necesidad de estar en cada proyecto.
-- **`cors` y `express`** son exclusivas de `shared_components` (servidor de desarrollo).
+- **`cors` y `express`** son exclusivas de `shared_module` (servidor de desarrollo).
 - **IMPORTANTE**: No quitar `react`, `react-native` ni `@callstack/repack` de los `package.json` locales. El hoisting resuelve a una sola copia en disco, pero el CLI requiere la declaracion local para autolinking.
 
 ## Repositorio
