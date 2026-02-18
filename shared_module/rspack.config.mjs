@@ -18,7 +18,7 @@ export default env => {
     output: {
       path: path.join(__dirname, 'build/generated', platform),
       publicPath: 'http://10.0.2.2:9000/',
-      uniqueName: 'SharedComponents',
+      uniqueName: 'SharedModule',
     },
     module: {
       rules: [
@@ -36,8 +36,8 @@ export default env => {
         platform,
       }),
       new Repack.plugins.ModuleFederationPluginV2({
-        name: 'SharedComponents',
-        filename: 'SharedComponents.container.bundle',
+        name: 'SharedModule',
+        filename: 'SharedModule.container.bundle',
         dts: false,
         exposes: {
           './DesignSystem': './src/design-system/index.ts',

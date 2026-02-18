@@ -1,5 +1,5 @@
 {
-  "name": "shared_components",
+  "name": "shared_module",
   "version": "0.0.1",
   "private": true,
   "scripts": {

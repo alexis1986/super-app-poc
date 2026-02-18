@@ -1,4 +1,4 @@
-import type { Theme } from 'SharedComponents/DesignSystem';
+import type { Theme } from 'SharedModule/DesignSystem';
 
 // Theme customizado para App B - Estilo Verde/Fintech
 export const appBTheme: Theme = {

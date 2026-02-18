@@ -1,7 +1,7 @@
 packages:
   - 'AppA'
   - 'AppB'
-  - 'shared_components'
+  - 'shared_module'
 
 catalog:
   react: 18.3.1

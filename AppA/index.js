@@ -12,8 +12,8 @@ const APPA_DEV_SERVER = Platform.OS === 'android'
   : 'http://localhost:8081';
 
 ScriptManager.shared.addResolver(async (scriptId, caller) => {
-  // MFv2 runtime handles SharedComponents resolution internally
-  if (caller === 'SharedComponents') {
+  // MFv2 runtime handles SharedModule resolution internally
+  if (caller === 'SharedModule') {
     return undefined;
   }
 

@@ -1,4 +1,4 @@
-import type { Theme } from 'SharedComponents/DesignSystem';
+import type { Theme } from 'SharedModule/DesignSystem';
 
 // Theme customizado para App A - Estilo Azul/Corporativo
 export const appATheme: Theme = {

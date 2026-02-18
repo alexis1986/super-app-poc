@@ -42,8 +42,8 @@ export default env => {
         name: 'AppB',
         dts: false,
         remotes: {
-          SharedComponents:
-            'SharedComponents@http://10.0.2.2:9000/mf-manifest.json',
+          SharedModule:
+            'SharedModule@http://10.0.2.2:9000/mf-manifest.json',
         },
         shared: {
           react: {singleton: true, eager: true, requiredVersion: '18.3.1'},

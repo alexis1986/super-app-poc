@@ -5,7 +5,7 @@
     "paths": {
       "@screens/*": ["screens/*"],
       "@theme/*": ["theme/*"],
-      "SharedComponents/*": ["@types/remote-modules"]
+      "SharedModule/*": ["@types/remote-modules"]
     }
   },
   "include": ["src/**/*", "App.tsx", "index.js"],

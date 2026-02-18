@@ -1,7 +1,7 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet, Alert, View} from 'react-native';
-import {Text, Button, Card, ThemeProvider, useTheme} from 'SharedComponents/DesignSystem';
-import type {LoginResponse} from 'SharedComponents/Login';
+import {Text, Button, Card, ThemeProvider, useTheme} from 'SharedModule/DesignSystem';
+import type {LoginResponse} from 'SharedModule/Login';
 import {appATheme} from '../theme/appATheme';
 
 interface WelcomeScreenProps {
