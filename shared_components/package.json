@@ -3,10 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start",
     "build:android:dev": "npx rspack build --config rspack.config.mjs --env platform=android",
     "serve": "node server.js",
     "build:serve": "npm run build:android:dev && npm run serve",
