@@ -105,7 +105,30 @@ npm run build:serve
 
 Esto compila el bundle con Rspack e inicia un servidor Express en el puerto 9000 sirviendo `mf-manifest.json` y todos los chunks federados.
 
-### 3. Iniciar dev server de AppA o AppB
+### 3. Iniciar el emulador Android
+
+Listar AVDs disponibles:
+
+```bash
+emulator -list-avds
+```
+
+Iniciar el emulador (elegir uno):
+
+```bash
+emulator -avd Medium_Phone_API_36.1
+# o
+emulator -avd Pixel_9
+```
+
+> **Windows**: si `emulator` no esta en el PATH, usar la ruta completa:
+> ```bash
+> "$LOCALAPPDATA/Android/Sdk/emulator/emulator" -avd Medium_Phone_API_36.1
+> ```
+
+Esperar a que el emulador arranque completamente antes de continuar.
+
+### 4. Iniciar dev server de AppA o AppB
 
 Ambas apps usan el puerto 8081. No ejecutar simultáneamente.
 
@@ -114,7 +137,7 @@ cd AppA && npm start    # o
 cd AppB && npm start
 ```
 
-### 4. Ejecutar en emulador Android
+### 5. Ejecutar en emulador Android
 
 ```bash
 adb reverse tcp:8081 tcp:8081
