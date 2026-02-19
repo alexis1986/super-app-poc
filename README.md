@@ -107,24 +107,33 @@ Esto compila el bundle con Rspack e inicia un servidor Express en el puerto 9000
 
 ### 3. Iniciar el emulador Android
 
+> **Windows**: `emulator` usualmente no esta en el PATH. Agregar esta entrada a las variables de entorno del sistema (reemplazar `<usuario>` con tu usuario):
+> ```
+> C:\Users\<usuario>\AppData\Local\Android\Sdk\emulator
+> ```
+> Alternativamente, usar la ruta completa en cada comando (ver abajo).
+
 Listar AVDs disponibles:
 
 ```bash
+# Si emulator esta en el PATH:
 emulator -list-avds
+
+# Windows con ruta completa:
+"$LOCALAPPDATA/Android/Sdk/emulator/emulator" -list-avds
 ```
 
 Iniciar el emulador (elegir uno):
 
 ```bash
+# Si emulator esta en el PATH:
 emulator -avd Medium_Phone_API_36.1
-# o
-emulator -avd Pixel_9
-```
 
-> **Windows**: si `emulator` no esta en el PATH, usar la ruta completa:
-> ```bash
-> "$LOCALAPPDATA/Android/Sdk/emulator/emulator" -avd Medium_Phone_API_36.1
-> ```
+# Windows con ruta completa:
+"$LOCALAPPDATA/Android/Sdk/emulator/emulator" -avd Medium_Phone_API_36.1
+# o
+"$LOCALAPPDATA/Android/Sdk/emulator/emulator" -avd Pixel_9
+```
 
 Esperar a que el emulador arranque completamente antes de continuar.
 
